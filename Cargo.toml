@@ -1,6 +1,6 @@
 [package]
-name = "simply-launch"
-description = "An alternate, simple horse game launcher"
+name = "sso-laucnher-rs"
+description = "Less bloated horsegame launcher"
 authors = ["varsity", "realindrit"]
 version = "1.0.1"
 license = "MIT"

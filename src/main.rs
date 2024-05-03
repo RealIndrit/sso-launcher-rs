@@ -28,6 +28,12 @@ struct Args {
         default_value = "C:/Program Files/Star Stable Online/client"
     )]
     game_path: Option<PathBuf>,
+
+    #[arg(
+    short = 'a',
+    long = "game_arguments"
+    )]
+    game_arguments: Option<Vec<String>>,
 }
 fn main() {
     // Collect arguments efficiently...

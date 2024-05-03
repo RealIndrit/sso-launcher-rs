@@ -4,6 +4,7 @@ use crate::{endpoints, Args};
 pub struct API;
 
 /// Auth response.
+#[derive(Debug)]
 pub struct AuthResponse {
     /// The users Account ID.
     user_id: String,
@@ -18,29 +19,36 @@ pub struct AuthResponse {
 impl API {
     /// Launches the game using the given auth response.
     pub fn launch_game(args: Args) {
-        let auth_response = API::login(args.email, args.password);
         if let Some(p) = args.game_path {
-            if !std::path::Path::new(&p.as_path().join("SSOClient.exe")).exists() {
+            let exe = &p.as_path().join("SSOClient.exe");
+            if !std::path::Path::new(exe).exists() {
                 panic!(
                     "[ERROR] No 'SSOClient.exe' is present. Make sure that this path is correct!"
                 )
             }
 
+            let auth_response = API::login(args.email, args.password);
+            // println!("{:?}", auth_response);
             // Save me from this horrible way of passing arguments.
-            std::process::Command::new(p.as_path())
-                .args([
-                    &format!("-Language=en"),
-                    &format!("-NetworkUserId={}", auth_response.user_id),
-                    "-MetricsServer=https://metrics.starstable.com/metric/v1/metrics",
-                    "-MetricsGroup=[1]",
-                    &format!("-LoginQueueToken={}", auth_response.queue_token),
-                    &format!("-NetworkLauncherHash={}", auth_response.launcher_hash),
-                    &format!(
-                        "-ProjectUserDataPath=\"{}\"",
-                        &p.as_path().to_string_lossy()
-                    ),
-                    &format!("-NetworkLauncherServer={}", endpoints::LAUNCHER_PROXY),
-                ])
+            let launch_args = [
+                &"-Language=en".to_string(),
+                &format!("-NetworkUserId={}", auth_response.user_id),
+                &format!(
+                    "-MetricsServer={}",
+                    "https://metrics.starstable.com/metric/v1/metrics"
+                ),
+                &format!("-MetricsGroup={}", "[1]"),
+                &format!("-LoginQueueToken={}", auth_response.queue_token),
+                &format!("-NetworkLauncherHash={}", auth_response.launcher_hash),
+                &format!(
+                    "-ProjectUserDataPath={}",
+                    &p.as_path().to_string_lossy()
+                ),
+                &format!("-NetworkLauncherServer={}", endpoints::LAUNCHER_PROXY),
+            ];
+
+            // println!("{:?}", launch_args);
+            std::process::Command::new(exe)
                 .spawn()
                 .expect("[ERROR] Couldn't start 'SSOClient.exe'!");
         };
