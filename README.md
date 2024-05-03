@@ -5,7 +5,7 @@
 Welcome to git, if its MIT license, you can do whatever :P. To be serious, I looked at activity of that project and saw nothing has been done the last 7 months, so it seems to not be maintained. And the fact that it did not even work as logic's stuff had changed since. So I just moved over to my own fork and maintain it here, OG author is 100% welcome to rip the code. (I even encourage it)
 
 ## What is it?
-Simply put, it is a heavily stripped down launcher for `Star Stable Online` with less bloat. The amount of shit in the official launcher is nothing short of astonishing. And I personally do not wanna be within 10 feet radius of Electron based bloat programs if it can be avoided.
+Simply put, it is a heavily stripped down launcher for `Star Stable Online` with less bloat. A bit scuffed Rust code maybe... The amount of shit in the official launcher is nothing short of astonishing. And I personally do not wanna be within 10 feet radius of Electron based bloat programs if it can be avoided.
 
 ## Why?
 
@@ -15,10 +15,10 @@ _Because I don't want to sit and wait for their horrible pasta-coded launcher ta
 - Star Coins
 - Stable Care
 - Offers
-    - No joke, they got a whole damn sub-section in their API just for this
+    - No joke, they got a whole damn subsection in their API just for this
 - A whole-ass video
 - Useless CSS which, by the way, **you'll only look at for 5 seconds until the game launches, nobody sits and stares at your Windows 8-like clustered launcher**
-- A billion different libraries, many of which they could of easily have re-created themselves.
+- A billion different libraries, many of which they could easily have re-created themselves.
     - Like grabbing your Machine ID, how can a million-dollar company fail to implement something so basic, in a launcher that's only exported for **2** platforms?
     - You only have to find a way of grabbing the ID on 2 separate platforms, and don't worry about Linux since WINE/Proton will to 99% work just fine with fetching it too.
 
@@ -27,8 +27,10 @@ _In conclusion; their launcher is a bloated, slow and utter mess. Just extract t
 ## Does it implement everything the actual launcher has?
 No, not even close to it. It has no store, no news, nothing of that useless shit. It will just do what's needed to download/update/launch the game, nothing less, nothing more.
 
+I will implement auto-update/download and some custom launch properties in the future
+
 ## Where's the UI?
-There's none, it's a terminal application. Terminal is more than enough for this use case, if you geniunly belive you need a UI, just use the official launcher...
+There's none, it's a terminal application. Terminal is more than enough for this use case, if you genuially believe you need a UI, just use the official launcher...
 
 ## Does this break the TOS?
 I do not know specifically, so I will say `YES`. So use with caution and do not do anything stupid.

@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+use anyhow::Error;
 use crate::{endpoints, Args};
 
 /// Implementation of the `launcher-proxy` API.
@@ -18,53 +20,69 @@ pub struct AuthResponse {
 
 impl API {
     /// Launches the game using the given auth response.
-    pub fn launch_game(args: Args) {
-        if let Some(p) = args.game_path {
-            let exe = &p.as_path().join("SSOClient.exe");
-            if !std::path::Path::new(exe).exists() {
-                panic!(
-                    "[ERROR] No 'SSOClient.exe' is present. Make sure that this path is correct!"
-                )
-            }
-
-            let auth_response = API::login(args.email, args.password);
-            // println!("{:?}", auth_response);
-            // Save me from this horrible way of passing arguments.
-            let launch_args = [
-                &"-Language=en".to_string(),
-                &format!("-NetworkUserId={}", auth_response.user_id),
-                &format!(
-                    "-MetricsServer={}",
-                    "https://metrics.starstable.com/metric/v1/metrics"
-                ),
-                &format!("-MetricsGroup={}", "[1]"),
-                &format!("-LoginQueueToken={}", auth_response.queue_token),
-                &format!("-NetworkLauncherHash={}", auth_response.launcher_hash),
-                &format!(
-                    "-ProjectUserDataPath={}",
-                    &p.as_path().to_string_lossy()
-                ),
-                &format!("-NetworkLauncherServer={}", endpoints::LAUNCHER_PROXY),
-            ];
-
-            // println!("{:?}", launch_args);
-            std::process::Command::new(exe)
-                .spawn()
-                .expect("[ERROR] Couldn't start 'SSOClient.exe'!");
+    pub fn get_launch_args(args: Args) -> Result<Vec<String>, Error> {
+        let path = &args.game_path.clone().unwrap();
+        let exe = &path.clone().join("SSOClient.exe");
+        if !std::path::Path::new(exe).exists() {
+            return Err(Error::msg("No 'SSOClient.exe' is present. Make sure that this path is correct!"));
+        }
+        return match API::login(args.email, args.password) {
+            Ok(auth_response) => {
+                let launch_args = [
+                    exe.display().to_string(),
+                    "-Language=\"sv\"".to_string(),
+                    format!("-NetworkUserId=\"{}\"", auth_response.user_id),
+                    format!("-MetricsServer=\"{}\"", endpoints::METRICS),
+                    format!("-MetricsGroup=\"{}\"", "[1]"),
+                    format!("-LoginQueueToken=\"{}\"", auth_response.queue_token),
+                    format!("-NetworkLauncherHash=\"{}\"", auth_response.launcher_hash),
+                    format!("-ProjectUserDataPath=\"{}\"", &path.clone().to_string_lossy()),
+                    format!("-NetworkLauncherServer=\"{}\"", endpoints::LAUNCHER_PROXY),
+                ];
+                Ok(launch_args.to_vec())
+            },
+            Err(e) => Err(e)
         };
     }
 
-    /// Attempts to login.
+
+    /// When Star Stable entertainment decides to fix their shit, we will implement it here
+    /// but at the time they have not updated the repo tag since 2021
+    // {
+    //   versionInfo: {
+    //     version: '2.9.13',
+    //     files: [ [Object] ],
+    //     path: 'Star Stable Online Setup 2.9.13.exe',
+    //     sha512: 'EsB1RFEqivuG+w4+yulMS8BnkE8DndpwCnjbpYXD2Bg3f3f3oTU+AfMYthxx0BOH0cVIcYxlJl4I/6X0G6S4UA==',
+    //     releaseDate: '2021-12-15T09:19:31.282Z'
+    //   },
+    //   updateInfo: {
+    //     version: '2.9.13',
+    //     files: [ [Object] ],
+    //     path: 'Star Stable Online Setup 2.9.13.exe',
+    //     sha512: 'EsB1RFEqivuG+w4+yulMS8BnkE8DndpwCnjbpYXD2Bg3f3f3oTU+AfMYthxx0BOH0cVIcYxlJl4I/6X0G6S4UA==',
+    //     releaseDate: '2021-12-15T09:19:31.282Z'
+    //   }
+    // }
+    /// Attempts to get latest release tag.
+    /// ## Returns
+    /// A `String` containing the latest tagged version of the launcher .
+    #[inline(always)]
+    pub fn get_latest_launcher_version() -> String {
+        return "2.30.1".to_string() // Hardcode it ig...
+    }
+
+    /// Attempts to log in.
     /// ## Returns
     /// A structure containing the User ID and Launcher Hash.
     /// Panics if the API `success` value is false, or if there's an error with retrieving/sending
     /// data.
     #[inline(always)]
-    pub fn login(email: String, password: String) -> AuthResponse {
+    pub fn login(email: String, password: String) -> Result<AuthResponse, Error> {
         let json = json::object! {
             username: email,
             password: password,
-            launcherVersion: "2.30.1", // Update when the launcher updates.
+            launcherVersion: Self::get_latest_launcher_version(),
             launcherPlatform: "desktop",
             clientOsRelease: "10.0.22621",
             browserFamily: "Electron",
@@ -80,28 +98,29 @@ impl API {
                 .header("Content-Type", "application/json")
                 .header("User-Agent", endpoints::USER_AGENT)
                 .send()
-                .expect("[ERROR] Couldn't send POST request!")
+                .expect("Couldn't send POST request!")
                 .text()
-                .expect("[ERROR] Couldn't get raw text response from the request!"),
+                .expect("Couldn't get raw text response from the request!"),
         )
-        .expect("[ERROR] Couldn't parse response as JSON!");
+        .expect("Couldn't parse response as JSON!");
 
         if response["success"]
             .as_bool()
-            .expect("[ERROR] No 'success' key is present?")
+            .expect("No 'success' key is present?")
         {
             // Success, get the queueToken and return.
             let launcher_hash = response["launcherHash"]
                 .as_str()
-                .expect("[ERROR] Couldn't find 'launcherHash'!")
+                .expect("Couldn't find 'launcherHash'!")
                 .to_owned();
-            AuthResponse {
+
+            return Ok(AuthResponse {
                 user_id: response["accountId"].to_string(),
                 launcher_hash: launcher_hash.to_owned(),
-                queue_token: Self::get_queue_token(launcher_hash, client),
-            }
+                queue_token: Self::get_queue_token(launcher_hash, client).unwrap(),
+            })
         } else {
-            panic!("[ERROR] Couldn't login, response: {response}")
+            return Err(Error::msg("Could not get success data for Login request"))
         }
     }
 
@@ -111,7 +130,7 @@ impl API {
     /// Panics if the API `success` value is `false`, or there's an error with retrieving/sending
     /// data.
     #[inline(always)]
-    fn get_queue_token(launcher_hash: String, client: reqwest::blocking::Client) -> String {
+    fn get_queue_token(launcher_hash: String, client: reqwest::blocking::Client) -> Result<String, Error> {
         let json = json::object! {
             launcher_hash: launcher_hash
         };
@@ -124,23 +143,23 @@ impl API {
                 .header("Content-Type", "application/json")
                 .header("User-Agent", endpoints::USER_AGENT)
                 .send()
-                .expect("[ERROR] Couldn't send POST request!")
+                .expect("Couldn't send POST request!")
                 .text()
-                .expect("[ERROR] Couldn't get raw text response from the request!"),
+                .expect("Couldn't get raw text response from the request!"),
         )
-        .expect("[ERROR] Couldn't parse response as JSON!");
+        .expect("Couldn't parse response as JSON!");
 
         if response["success"]
             .as_bool()
-            .expect("[ERROR] No 'success' key is present?")
+            .expect("No 'success' key is present?")
         {
             // Success, get the token.
-            response["queueToken"]
+            Ok(response["queueToken"]
                 .as_str()
-                .expect("[ERROR] Couldn't find 'queueToken'!")
-                .to_owned()
+                .expect("Couldn't find 'queueToken'!")
+                .to_owned())
         } else {
-            panic!("[ERROR] Couldn't get queue token, response: {response}")
+            return Err(Error::msg("Couldn't get queue token, response: {response}"))
         }
     }
 }
