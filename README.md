@@ -1,8 +1,17 @@
-# SimplyLaunch
-An alternate, simple horse game launcher, because over-engineering one using IPC and Electron bloat is all they can do themselves.
+# SSO Launcher (Rust) (Based on [SimplyLaunch](https://github.com/vars1ty/SimplyLaunch))
+
+
+## Why did you fork?
+Welcome to git, if its MIT license, you can do whatever :P. To be serious, I looked at activity of that project and saw nothing has been done the last 7 months, so it seems to not be maintained. And the fact that it did not even work as logic's stuff had changed since. So I just moved over to my own fork and maintain it here, OG author is 100% welcome to rip the code. (I even encourage it)
+
+## What is it?
+Simply put, it is a heavily stripped down launcher for `Star Stable Online` with less bloat. The amount of shit in the official launcher is nothing short of astonishing. And I personally do not wanna be within 10 feet radius of Electron based bloat programs if it can be avoided.
 
 ## Why?
-Because I don't want to sit and wait for their horrible pasta-coded launcher takes its sweet time to load useless stuff, like:
+
+I'll just use the original authors' description. It summarizes it pretty well:
+
+_Because I don't want to sit and wait for their horrible pasta-coded launcher takes its sweet time to load useless stuff, like:_
 - Star Coins
 - Stable Care
 - Offers
@@ -13,29 +22,18 @@ Because I don't want to sit and wait for their horrible pasta-coded launcher tak
     - Like grabbing your Machine ID, how can a million-dollar company fail to implement something so basic, in a launcher that's only exported for **2** platforms?
     - You only have to find a way of grabbing the ID on 2 separate platforms, and don't worry about Linux since WINE/Proton will to 99% work just fine with fetching it too.
 
-In conclusion; their launcher is a bloated, slow and utter mess. Just extract the asar and check for yourself, I'd be surprised if you came back with any sanity left.
-
-Oh and Linux. Just use the normal launcher to download the game/update it and then this. Less headaches from dealing with the incompetent company's own stuff.
+_In conclusion; their launcher is a bloated, slow and utter mess. Just extract the asar and check for yourself, I'd be surprised if you came back with any sanity left._
 
 ## Does it implement everything the actual launcher has?
-No, not even close to it.
-
-It's meant as an replacement for their own launcher when you have already downloaded the game files/updates and so on, nothing more.
-
-It also doesn't implement the Login Queue (as if you'd ever get in that, the game's dead) and only fetches it to get the mandatory "Queue Token".
-
-Whether or not I'll implement support for the queue depends, but I have never gotten it more than once, and that was when it first released.
-
-Regarding downloading game files/updates, highly unlikely for several reasons:
-1. Searching through their awful code to reverse-engineer how they download files and then debug it all will leave me crippled, although downloading game files would probably be the easiest step out of these 2 points
-2. I have no idea how they patch their game files, whether it's proper patching or just re-downloading the .CSA/.CSAHEADER files.
+No, not even close to it. It has no store, no news, nothing of that useless shit. It will just do what's needed to download/update/launch the game, nothing less, nothing more.
 
 ## Where's the UI?
-There's none, it's a terminal application. I'm not implementing a whole UI for something this simple.
+There's none, it's a terminal application. Terminal is more than enough for this use case, if you geniunly belive you need a UI, just use the official launcher...
 
 ## Does this break the TOS?
-Probably yes, and disclaimer: I am in no way associated with Star Stable Entertainment AB.
+I do not know specifically, so I will say `YES`. So use with caution and do not do anything stupid.
 
-I made this since their own launcher when it comes to being fast, is as slow as it can get.
-
-The odds of you getting banned for it though are one in a billion, as it doesn't affect the gameplay in any way, and never will.
+## Disclaimer
+1. I am in no way associated with Star Stable Entertainment AB.
+2. I do not endorse using this in any way.
+3. Anything you do, using this launcher, is sole the responsibility of you as the user. I do not take and responsibility for what it's used for.
