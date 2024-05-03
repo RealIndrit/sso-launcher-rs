@@ -1,4 +1,4 @@
-use crate::endpoints;
+use crate::{endpoints, Args};
 
 /// Implementation of the `launcher-proxy` API.
 pub struct API;
@@ -17,29 +17,33 @@ pub struct AuthResponse {
 
 impl API {
     /// Launches the game using the given auth response.
-    pub fn launch_game(auth_response: AuthResponse, language: String) {
-        if !std::path::Path::new("./SSOClient.exe").exists() {
-            panic!("[ERROR] No 'SSOClient.exe' is present. Make sure that this executable is located within the 'client' directory!")
-        }
+    pub fn launch_game(args: Args) {
+        let auth_response = API::login(args.email, args.password);
+        if let Some(p) = args.game_path {
+            if !std::path::Path::new(&p.as_path().join("SSOClient.exe")).exists() {
+                panic!(
+                    "[ERROR] No 'SSOClient.exe' is present. Make sure that this path is correct!"
+                )
+            }
 
-        let current_directory = std::env::current_dir().expect("[ERROR] Failed retrieving path!");
-        let current_directory = current_directory.to_string_lossy();
-
-        // Save me from this horrible way of passing arguments.
-        // Thank you Johan.
-        std::process::Command::new("./SSOClient.exe")
-            .args([
-                &format!("-Language={language}"),
-                &format!("-NetworkUserId={}", auth_response.user_id),
-                "-MetricsServer=https://metrics.starstable.com/metric/v1/metrics",
-                "-MetricsGroup=[1]",
-                &format!("-LoginQueueToken={}", auth_response.queue_token),
-                &format!("-NetworkLauncherHash={}", auth_response.launcher_hash),
-                &format!("-ProjectUserDataPath=\"{current_directory}\""),
-                &format!("-NetworkLauncherServer={}", endpoints::LAUNCHER_PROXY),
-            ])
-            .spawn()
-            .expect("[ERROR] Couldn't start 'SSOClient.exe'!");
+            // Save me from this horrible way of passing arguments.
+            std::process::Command::new(p.as_path())
+                .args([
+                    &format!("-Language=en"),
+                    &format!("-NetworkUserId={}", auth_response.user_id),
+                    "-MetricsServer=https://metrics.starstable.com/metric/v1/metrics",
+                    "-MetricsGroup=[1]",
+                    &format!("-LoginQueueToken={}", auth_response.queue_token),
+                    &format!("-NetworkLauncherHash={}", auth_response.launcher_hash),
+                    &format!(
+                        "-ProjectUserDataPath=\"{}\"",
+                        &p.as_path().to_string_lossy()
+                    ),
+                    &format!("-NetworkLauncherServer={}", endpoints::LAUNCHER_PROXY),
+                ])
+                .spawn()
+                .expect("[ERROR] Couldn't start 'SSOClient.exe'!");
+        };
     }
 
     /// Attempts to login.
@@ -52,11 +56,11 @@ impl API {
         let json = json::object! {
             username: email,
             password: password,
-            launcher_version: "2.18.0", // Update when the launcher updates.
-            launcher_platform: "desktop",
-            client_os: "Windows",
-            browser_family: "Electron",
-            deviceId: "0"
+            launcherVersion: "2.30.1", // Update when the launcher updates.
+            launcherPlatform: "desktop",
+            clientOsRelease: "10.0.22621",
+            browserFamily: "Electron",
+            deviceId: "NoElectronBloatWareHereLOL"
         };
 
         println!("Grabbing Launcher Hash and User ID...");
@@ -78,13 +82,13 @@ impl API {
             .as_bool()
             .expect("[ERROR] No 'success' key is present?")
         {
-            // Success, get the queue_token and return.
-            let launcher_hash = response["launcher_hash"]
+            // Success, get the queueToken and return.
+            let launcher_hash = response["launcherHash"]
                 .as_str()
-                .expect("[ERROR] Couldn't find 'launcher_hash'!")
+                .expect("[ERROR] Couldn't find 'launcherHash'!")
                 .to_owned();
             AuthResponse {
-                user_id: response["account_id"].to_string(),
+                user_id: response["accountId"].to_string(),
                 launcher_hash: launcher_hash.to_owned(),
                 queue_token: Self::get_queue_token(launcher_hash, client),
             }

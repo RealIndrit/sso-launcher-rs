@@ -1,32 +1,36 @@
 use api::API;
+use std::path::PathBuf;
 
 mod api;
 mod endpoints;
+use clap::Parser;
+#[derive(Parser, Debug)]
+#[command(
+    author,
+    version,
+    about,
+    long_about = "Less bloat Star Stable Online Launcher (Fuck electron bloatware)"
+)]
 
+struct Args {
+    /// The username/email used to log in
+    #[arg(short = 'e', long = "email")]
+    email: String,
+
+    /// The password used to log in
+    #[arg(short = 'p', long = "password")]
+    password: String,
+
+    /// The path to the SSO.exe file folder, if you don't know what this means, you should go back to default launcher tbh...
+    #[arg(
+        short = 'g',
+        long = "game_path",
+        default_value = "C:/Program Files/Star Stable Online/client"
+    )]
+    game_path: Option<PathBuf>,
+}
 fn main() {
-    // Collect the arguments.
-    let mut args = std::env::args();
-
-    // Skip the first argument, it's the executable name.
-    args.next();
-
-    // Collect Email and Password.
-    let email = args
-        .next()
-        .expect("[ERROR] Missing Email! USAGE: ./simply-launch email@example.com password123");
-    let password = args
-        .next()
-        .expect("[ERROR] Missing Password! USAGE: ./simply-launch email@example.com password123");
-
-    // If there's any remaining arguments after password, assume its the user overriding the
-    // language.
-    // Otherwise default to "en" / English.
-    let language = args.next().unwrap_or_else(|| "en".to_owned());
-
-    println!("Logging in and launching, runtime language: {language}");
-    println!("If you wish to use a different language, add the language identifier after password.");
-    println!("For example: ./simply-launch email@example.com password123 en");
-
-    // Login and launch.
-    API::launch_game(API::login(email, password), language)
+    // Collect arguments efficiently...
+    let args = Args::parse();
+    API::launch_game(args)
 }

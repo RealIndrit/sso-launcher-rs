@@ -3,15 +3,26 @@
 /// Uses JSON and takes these parameters:
 /// `username`: String
 /// `password`: String
-/// `launcher_version`: String
-/// `launcher_platform`: String, should be set to `desktop`
-/// `client_os`: String, normal acknowledged values are `Windows` and `Mac OS`
-/// `browser_family`: String, should be set to `Electron`
+/// `launcherVersion`: String
+/// `launcherPlatform`: String, should be set to `desktop`
+/// `clientOsRelease`: String, 'your os distros version number, just set to a random release version such as `10.0.22621`'
+/// `browserFamily`: String, should be set to `Electron`
 /// `deviceId`: String, leave empty
 /// ## Output
-/// A JSON Response, relevant data being `launcher_hash`, `account_id`, `metrics_url` and
-/// `metrics_groups`.
-pub const AUTH_LOGIN: &str = "https://launcher-proxy.starstable.com/launcher/0.1/auth";
+/// A JSON Response, relevant data being `launcherHash`, `accountId`, `metricsUrl` and
+/// `metricsGroups`.
+///
+/// Payload being sent from the bloatware launcher
+/// {
+///   username: 'username',
+///   password: 'password',
+///   deviceId: 'id',
+///   launcherVersion: '2.30.1',
+///   launcherPlatform: 'desktop',
+///   clientOsRelease: '10.0.22621',
+///   browserFamily: 'Electron'
+/// }
+pub const AUTH_LOGIN: &str = "https://launcher-proxy.starstable.com/launcher/auth";
 
 /// Queue Create back-end.
 /// ## Usage
