@@ -1,8 +1,9 @@
-use std::fmt::Debug;
-use anyhow::Error;
 use crate::{endpoints, Args};
+use anyhow::Error;
+use std::fmt::Debug;
 
 /// Implementation of the `launcher-proxy` API.
+#[allow(clippy::upper_case_acronyms)]
 pub struct API;
 
 /// Auth response.
@@ -24,27 +25,55 @@ impl API {
         let path = &args.install_path.clone().unwrap();
         let exe = &path.clone().join("SSOClient.exe");
         if !std::path::Path::new(exe).exists() {
-            return Err(Error::msg("No 'SSOClient.exe' is present. Make sure that this path is correct!"));
+            return Err(Error::msg(
+                "No 'SSOClient.exe' is present. Make sure that this path is correct!",
+            ));
         }
-        return match API::login(args.email.to_owned(), args.password.to_owned()) {
-            Ok(auth_response) => {
-                let launch_args = [
-                    exe.display().to_string(),
-                    "-Language=sv".to_string(),
-                    format!("-NetworkUserId={}", auth_response.user_id),
-                    format!("-MetricsServer={}", endpoints::METRICS),
-                    format!("-MetricsGroup={}", "[1]"),
-                    format!("-LoginQueueToken={}", auth_response.queue_token),
-                    format!("-NetworkLauncherHash={}", auth_response.launcher_hash),
-                    format!("-ProjectUserDataPath={}", &path.clone().to_string_lossy()),
-                    format!("-NetworkLauncherServer={}", endpoints::LAUNCHER_PROXY),
-                ];
-                Ok(launch_args.to_vec())
-            },
-            Err(e) => Err(e)
-        };
-    }
 
+        let mut launch_args: Vec<String> = vec![];
+
+        launch_args.push(exe.display().to_string());
+
+        match args.language.to_owned() {
+            None => {
+                launch_args.push("-Language=en".to_string());
+            }
+            Some(lang) => {
+                launch_args.push(format!("-Language={:?}", lang));
+            }
+        }
+        match API::login(args.email.to_owned(), args.password.to_owned()) {
+            Ok(auth_response) => {
+                launch_args.push(format!("-NetworkUserId={}", auth_response.user_id));
+                launch_args.push(format!("-MetricsServer={}", endpoints::METRICS));
+                launch_args.push(format!("-MetricsGroup={}", "[1]"));
+                launch_args.push(format!("-LoginQueueToken={}", auth_response.queue_token));
+                launch_args.push(format!(
+                    "-NetworkLauncherHash={}",
+                    auth_response.launcher_hash
+                ));
+                launch_args.push(format!(
+                    "-ProjectUserDataPath={}",
+                    &path.clone().to_string_lossy()
+                ));
+                launch_args.push(format!(
+                    "-NetworkLauncherServer={}",
+                    endpoints::LAUNCHER_PROXY
+                ));
+            }
+            Err(e) => return Err(e),
+        };
+
+        match args.game_arguments.clone() {
+            None => Ok(launch_args),
+            Some(game_args) => {
+                for game_arg in game_args {
+                    launch_args.push(format!("-{}", game_arg));
+                }
+                Ok(launch_args)
+            }
+        }
+    }
 
     /// When Star Stable entertainment decides to fix their shit, we will implement it here
     /// but at the time they have not updated the repo tag since 2021
@@ -69,7 +98,7 @@ impl API {
     /// A `String` containing the latest tagged version of the launcher .
     #[inline(always)]
     pub fn get_latest_launcher_version() -> String {
-        return "2.30.1".to_string() // Hardcode it ig...
+        "2.30.1".to_string() // Hardcode it ig...
     }
 
     /// Attempts to log in.
@@ -114,13 +143,13 @@ impl API {
                 .expect("Couldn't find 'launcherHash'!")
                 .to_owned();
 
-            return Ok(AuthResponse {
+            Ok(AuthResponse {
                 user_id: response["accountId"].to_string(),
                 launcher_hash: launcher_hash.to_owned(),
                 queue_token: Self::get_queue_token(launcher_hash, client).unwrap(),
             })
         } else {
-            return Err(Error::msg("Could not get success data for Login request"))
+            Err(Error::msg("Could not get success data for Login request"))
         }
     }
 
@@ -130,7 +159,10 @@ impl API {
     /// Panics if the API `success` value is `false`, or there's an error with retrieving/sending
     /// data.
     #[inline(always)]
-    fn get_queue_token(launcher_hash: String, client: reqwest::blocking::Client) -> Result<String, Error> {
+    fn get_queue_token(
+        launcher_hash: String,
+        client: reqwest::blocking::Client,
+    ) -> Result<String, Error> {
         let json = json::object! {
             launcher_hash: launcher_hash
         };
@@ -159,7 +191,7 @@ impl API {
                 .expect("Couldn't find 'queueToken'!")
                 .to_owned())
         } else {
-            return Err(Error::msg("Couldn't get queue token, response: {response}"))
+            Err(Error::msg("Couldn't get queue token, response: {response}"))
         }
     }
 }

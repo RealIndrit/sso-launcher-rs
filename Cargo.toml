@@ -1,8 +1,8 @@
 [package]
 name = "sso-launcher-rs"
-description = "Less bloated horsegame launcher"
+description = "Less bloat Star Stable Online Launcher (Fuck electron bloatware)"
 authors = ["varsity", "realindrit"]
-version = "1.0.1"
+version = "1.0.2"
 license = "MIT"
 readme = "README.md"
 edition = "2021"
