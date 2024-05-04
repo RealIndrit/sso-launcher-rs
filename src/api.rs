@@ -1,4 +1,4 @@
-use crate::{endpoints, Args};
+use crate::{endpoints};
 use anyhow::Error;
 use std::fmt::Debug;
 
@@ -10,71 +10,16 @@ pub struct API;
 #[derive(Debug)]
 pub struct AuthResponse {
     /// The users Account ID.
-    user_id: String,
+    pub(crate) user_id: String,
 
     /// The users Launcher Hash, aka. Auth Token.
-    launcher_hash: String,
+    pub(crate) launcher_hash: String,
 
     /// The queue token for the user.
-    queue_token: String,
+    pub(crate) queue_token: String,
 }
 
 impl API {
-    /// Launches the game using the given auth response.
-    pub fn get_launch_args(args: &Args) -> Result<Vec<String>, Error> {
-        let path = &args.install_path.clone().unwrap();
-        let exe = &path.clone().join("SSOClient.exe");
-        if !std::path::Path::new(exe).exists() {
-            return Err(Error::msg(
-                "No 'SSOClient.exe' is present. Make sure that this path is correct!",
-            ));
-        }
-
-        let mut launch_args: Vec<String> = vec![];
-
-        launch_args.push(exe.display().to_string());
-
-        match args.language.to_owned() {
-            None => {
-                launch_args.push("-Language=en".to_string());
-            }
-            Some(lang) => {
-                launch_args.push(format!("-Language={:?}", lang));
-            }
-        }
-        match API::login(args.email.to_owned(), args.password.to_owned()) {
-            Ok(auth_response) => {
-                launch_args.push(format!("-NetworkUserId={}", auth_response.user_id));
-                launch_args.push(format!("-MetricsServer={}", endpoints::METRICS));
-                launch_args.push(format!("-MetricsGroup={}", "[1]"));
-                launch_args.push(format!("-LoginQueueToken={}", auth_response.queue_token));
-                launch_args.push(format!(
-                    "-NetworkLauncherHash={}",
-                    auth_response.launcher_hash
-                ));
-                launch_args.push(format!(
-                    "-ProjectUserDataPath={}",
-                    &path.clone().to_string_lossy()
-                ));
-                launch_args.push(format!(
-                    "-NetworkLauncherServer={}",
-                    endpoints::LAUNCHER_PROXY
-                ));
-            }
-            Err(e) => return Err(e),
-        };
-
-        match args.game_arguments.clone() {
-            None => Ok(launch_args),
-            Some(game_args) => {
-                for game_arg in game_args {
-                    launch_args.push(format!("-{}", game_arg));
-                }
-                Ok(launch_args)
-            }
-        }
-    }
-
     /// When Star Stable entertainment decides to fix their shit, we will implement it here
     /// but at the time they have not updated the repo tag since 2021
     // {
