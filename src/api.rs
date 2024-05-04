@@ -20,24 +20,24 @@ pub struct AuthResponse {
 
 impl API {
     /// Launches the game using the given auth response.
-    pub fn get_launch_args(args: Args) -> Result<Vec<String>, Error> {
-        let path = &args.game_path.clone().unwrap();
+    pub fn get_launch_args(args: &Args) -> Result<Vec<String>, Error> {
+        let path = &args.install_path.clone().unwrap();
         let exe = &path.clone().join("SSOClient.exe");
         if !std::path::Path::new(exe).exists() {
             return Err(Error::msg("No 'SSOClient.exe' is present. Make sure that this path is correct!"));
         }
-        return match API::login(args.email, args.password) {
+        return match API::login(args.email.to_owned(), args.password.to_owned()) {
             Ok(auth_response) => {
                 let launch_args = [
                     exe.display().to_string(),
-                    "-Language=\"sv\"".to_string(),
-                    format!("-NetworkUserId=\"{}\"", auth_response.user_id),
-                    format!("-MetricsServer=\"{}\"", endpoints::METRICS),
-                    format!("-MetricsGroup=\"{}\"", "[1]"),
-                    format!("-LoginQueueToken=\"{}\"", auth_response.queue_token),
-                    format!("-NetworkLauncherHash=\"{}\"", auth_response.launcher_hash),
-                    format!("-ProjectUserDataPath=\"{}\"", &path.clone().to_string_lossy()),
-                    format!("-NetworkLauncherServer=\"{}\"", endpoints::LAUNCHER_PROXY),
+                    "-Language=sv".to_string(),
+                    format!("-NetworkUserId={}", auth_response.user_id),
+                    format!("-MetricsServer={}", endpoints::METRICS),
+                    format!("-MetricsGroup={}", "[1]"),
+                    format!("-LoginQueueToken={}", auth_response.queue_token),
+                    format!("-NetworkLauncherHash={}", auth_response.launcher_hash),
+                    format!("-ProjectUserDataPath={}", &path.clone().to_string_lossy()),
+                    format!("-NetworkLauncherServer={}", endpoints::LAUNCHER_PROXY),
                 ];
                 Ok(launch_args.to_vec())
             },

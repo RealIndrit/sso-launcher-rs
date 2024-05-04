@@ -29,6 +29,8 @@ No, not even close to it. It has no store, no news, nothing of that useless shit
 
 I will implement auto-update/download and some custom launch properties in the future
 
+ITS STILL WIP
+
 ## Where's the UI?
 There's none, it's a terminal application. Terminal is more than enough for this use case, if you genuially believe you need a UI, just use the official launcher...
 
