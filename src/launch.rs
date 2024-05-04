@@ -1,5 +1,5 @@
 use anyhow::Error;
-use crate::api::API;
+use crate::api::StarStableApi;
 use crate::{endpoints, LaunchArgs};
 
 /// Launches the game using the given auth response.
@@ -24,7 +24,8 @@ pub fn launch_game(args: &LaunchArgs) -> Result<(), Error> {
             launch_args.push(format!("-Language={:?}", lang));
         }
     }
-    match API::login(args.email.to_owned(), args.password.to_owned()) {
+
+    match StarStableApi::login(args.email.to_owned(), args.password.to_owned()) {
         Ok(auth_response) => {
             launch_args.push(format!("-NetworkUserId={}", auth_response.user_id));
             launch_args.push(format!("-MetricsServer={}", endpoints::METRICS));

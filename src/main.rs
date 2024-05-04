@@ -18,7 +18,10 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Launches the game
     Launch(LaunchArgs),
+
+    /// Updates the game, use this if you fail to join a server
     Update(UpdateArgs)
 }
 
@@ -99,6 +102,6 @@ fn main() {
                 exit(1);
             }
         },
-        &Commands::Update(_) => todo!()
+        Commands::Update(_) => todo!()
     }
 }

@@ -4,7 +4,7 @@ use std::fmt::Debug;
 
 /// Implementation of the `launcher-proxy` API.
 #[allow(clippy::upper_case_acronyms)]
-pub struct API;
+pub struct StarStableApi;
 
 /// Auth response.
 #[derive(Debug)]
@@ -19,7 +19,7 @@ pub struct AuthResponse {
     pub(crate) queue_token: String,
 }
 
-impl API {
+impl StarStableApi {
     /// When Star Stable entertainment decides to fix their shit, we will implement it here
     /// but at the time they have not updated the repo tag since 2021
     // {
