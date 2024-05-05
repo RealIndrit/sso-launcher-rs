@@ -1,9 +1,9 @@
-use anyhow::Error;
-use crate::api::StarStableApi;
+use crate::api::{AuthResponse};
 use crate::{endpoints, LaunchArgs};
+use anyhow::Error;
 
 /// Launches the game using the given auth response.
-pub fn launch_game(args: &LaunchArgs) -> Result<(), Error> {
+pub fn launch_game(auth_response: AuthResponse, args: &LaunchArgs) -> Result<(), Error> {
     let path = &args.install_path.clone().unwrap();
     let exe = &path.clone().join("SSOClient.exe");
     if !std::path::Path::new(exe).exists() {
@@ -25,27 +25,22 @@ pub fn launch_game(args: &LaunchArgs) -> Result<(), Error> {
         }
     }
 
-    match StarStableApi::login(args.email.to_owned(), args.password.to_owned()) {
-        Ok(auth_response) => {
-            launch_args.push(format!("-NetworkUserId={}", auth_response.user_id));
-            launch_args.push(format!("-MetricsServer={}", endpoints::METRICS));
-            launch_args.push(format!("-MetricsGroup={}", "[1]"));
-            launch_args.push(format!("-LoginQueueToken={}", auth_response.queue_token));
-            launch_args.push(format!(
-                "-NetworkLauncherHash={}",
-                auth_response.launcher_hash
-            ));
-            launch_args.push(format!(
-                "-ProjectUserDataPath={}",
-                &path.clone().to_string_lossy()
-            ));
-            launch_args.push(format!(
-                "-NetworkLauncherServer={}",
-                endpoints::LAUNCHER_PROXY
-            ));
-        }
-        Err(e) => return Err(e),
-    };
+    launch_args.push(format!("-NetworkUserId={}", auth_response.user_id));
+    launch_args.push(format!("-MetricsServer={}", endpoints::METRICS));
+    launch_args.push(format!("-MetricsGroup={}", "[1]"));
+    launch_args.push(format!("-LoginQueueToken={}", auth_response.queue_token));
+    launch_args.push(format!(
+        "-NetworkLauncherHash={}",
+        auth_response.launcher_hash
+    ));
+    launch_args.push(format!(
+        "-ProjectUserDataPath={}",
+        &path.clone().to_string_lossy()
+    ));
+    launch_args.push(format!(
+        "-NetworkLauncherServer={}",
+        endpoints::LAUNCHER_PROXY
+    ));
 
     match args.game_arguments.clone() {
         None => (),
@@ -53,7 +48,6 @@ pub fn launch_game(args: &LaunchArgs) -> Result<(), Error> {
             for game_arg in game_args {
                 launch_args.push(format!("-{}", game_arg));
             }
-
         }
     }
 
