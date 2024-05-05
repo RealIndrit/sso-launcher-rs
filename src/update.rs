@@ -15,6 +15,7 @@ const READY: i8 = 4;
 
 /// Update or download all required game files for given patch
 pub fn update_game(auth_response: AuthResponse, args: &UpdateArgs) -> Result<(), Error> {
+    todo!();
     let path = &args.install_path.clone().unwrap();
     let manifest_data = get_local_manifest(path);
     let mut install_type = NON_PATCH_UPDATE;

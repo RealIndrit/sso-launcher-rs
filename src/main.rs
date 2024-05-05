@@ -50,10 +50,10 @@ enum Commands {
 struct DownloadArgs {
     /// The path to the Star Stable Online base installation folder, SSOClient should be in a subfolder called client within this path
     #[arg(
-    short = 'i',
+    short = 'p',
     long,
     )]
-    install_path: Option<PathBuf>,
+    download_path: Option<PathBuf>,
 }
 
 #[derive(Args)]

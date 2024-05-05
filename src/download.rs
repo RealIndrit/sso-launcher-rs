@@ -3,7 +3,7 @@ use crate::api::StarStableApi;
 use crate::DownloadArgs;
 
 pub fn download_launcher(download_args: &DownloadArgs) -> Result<(), Error>{
-    match download_args.install_path.to_owned() {
+    match download_args.download_path.to_owned() {
         None => {
             let path = dirs::home_dir().unwrap().as_path().join("Star Stable Online Setup.exe");
             StarStableApi::download_official_launcher(path)

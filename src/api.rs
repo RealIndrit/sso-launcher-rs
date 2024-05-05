@@ -3,8 +3,10 @@ use anyhow::Error;
 use std::fmt::Debug;
 use std::fs::File;
 use std::io;
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use json::JsonValue;
+use crate::utils::write_to_file;
 
 /// Implementation of the `launcher-proxy` API.
 #[allow(clippy::upper_case_acronyms)]
@@ -101,14 +103,16 @@ impl StarStableApi {
                 .header("cache-control", "no-cache")
                 .send()
                 .expect("Couldn't send GET request!")
-                .text()
+                .bytes()
                 .expect("Couldn't get raw text data!");
 
-        let mut out = File::create(download_location.as_path()).unwrap();
-        match io::copy(&mut response.as_bytes(), &mut out) {
-            Ok(_) => Ok(()),
-            Err(e) => Err(Error::from(e))
-        }
+        let mut file = match File::create(&download_location) {
+            Err(why) => panic!("couldn't create {}", why),
+            Ok(file) => file,
+        };
+
+        file.write_all(response).unwrap();
+        Ok(())
     }
 
     /// Downloads file manifest
