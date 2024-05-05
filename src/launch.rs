@@ -1,20 +1,29 @@
-use crate::api::{AuthResponse};
+use crate::api::{AuthResponse, GameStatus};
 use crate::{endpoints, LaunchArgs};
 use anyhow::Error;
 
 /// Launches the game using the given auth response.
-pub fn launch_game(auth_response: AuthResponse, args: &LaunchArgs) -> Result<(), Error> {
-    let path = &args.install_path.clone().unwrap();
+pub fn launch_game(auth_response: AuthResponse, game_status: GameStatus, args: &LaunchArgs) -> Result<(), Error> {
+    // Path to client folder within the installation
+    let path = &args.install_path.clone().unwrap().join("client");
     let exe = &path.clone().join("SSOClient.exe");
     if !std::path::Path::new(exe).exists() {
         return Err(Error::msg(
-            "No 'SSOClient.exe' is present. Make sure that this path is correct!",
+            "No 'SSOClient.exe' is present. Make sure that this path is correct! Use --help for more info.",
         ));
     }
 
-    let mut launch_args: Vec<String> = vec![];
+    // Do some sanity checks before trying to launch game
+    if(game_status.update_in_progress == true){
+        return Err(Error::msg(format!("Game server '{}' undergoing update '{}', please try again later", game_status.friendly_name, game_status.game_version)));
+    }
 
-    launch_args.push(exe.display().to_string());
+    if(game_status.online != true && game_status.update_in_progress != true){
+        return Err(Error::msg(format!("Game server '{}' is not available at the time for unknown reason, please try again later. For more information see Star Stable Onlines's website", game_status.friendly_name)))
+    }
+
+    // Sanity checks passed, build argument structure being passed to game executable
+    let mut launch_args: Vec<String> = vec![];
 
     match args.language.to_owned() {
         None => {
@@ -51,6 +60,9 @@ pub fn launch_game(auth_response: AuthResponse, args: &LaunchArgs) -> Result<(),
         }
     }
 
+    println!("Launching game with following arguments: {:?}", launch_args);
+    // WE BALLLL
+    // NOTE: .current_dir() is important AF as the executable uses that to find its relative position to asset files LOL.
     std::process::Command::new(exe)
         .args(launch_args)
         .current_dir(path)

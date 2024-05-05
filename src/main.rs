@@ -3,11 +3,14 @@ mod endpoints;
 mod launch;
 mod status;
 mod update;
+mod utils;
+mod download;
 
 use crate::api::StarStableApi;
 use crate::launch::launch_game;
 use crate::status::status_game;
 use crate::update::update_game;
+use crate::download::download_launcher;
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use colored::Colorize;
 use std::path::PathBuf;
@@ -38,15 +41,28 @@ enum Commands {
 
     /// Fetches Server status for the logged in account
     Status,
+
+    /// Downloads the official launcher directly to path
+    DownloadOfficial(DownloadArgs),
+}
+
+#[derive(Args)]
+struct DownloadArgs {
+    /// The path to the Star Stable Online base installation folder, SSOClient should be in a subfolder called client within this path
+    #[arg(
+    short = 'i',
+    long,
+    )]
+    install_path: Option<PathBuf>,
 }
 
 #[derive(Args)]
 struct LaunchArgs {
-    /// The path to the SSO.exe file folder
+    /// The path to the Star Stable Online base installation folder, SSOClient should be in a subfolder called client within this path
     #[arg(
         short = 'i',
         long,
-        default_value = "C:/Program Files/Star Stable Online/client"
+        default_value = "C:/Program Files/Star Stable Online"
     )]
     install_path: Option<PathBuf>,
 
@@ -65,14 +81,15 @@ struct LaunchArgs {
 
 #[derive(Args, Debug)]
 struct UpdateArgs {
+    /// Version override
     #[arg(short = 'v', long)]
     version: Option<String>,
 
-    /// The path to the SSO.exe file folder
+    /// The path to the Star Stable Online base installation folder
     #[arg(
         short = 'i',
         long,
-        default_value = "C:/Program Files/Star Stable Online/client"
+        default_value = "C:/Program Files/Star Stable Online"
     )]
     install_path: Option<PathBuf>,
 }
@@ -105,7 +122,7 @@ fn main() {
 
     match &cli.command {
         Commands::Launch(args) => {
-            if let Err(e) = launch_game(auth_response, args) {
+            if let Err(e) = launch_game(auth_response, game_status, args) {
                 eprintln!("{}: {}", "error".bright_red().bold(), e);
                 exit(1);
             }
@@ -118,6 +135,12 @@ fn main() {
         }
         Commands::Status => {
             if let Err(e) = status_game(game_status) {
+                eprintln!("{}: {}", "error".bright_red().bold(), e);
+                exit(1);
+            }
+        }
+        Commands::DownloadOfficial(args) => {
+            if let Err(e) = download_launcher(args) {
                 eprintln!("{}: {}", "error".bright_red().bold(), e);
                 exit(1);
             }

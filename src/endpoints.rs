@@ -35,13 +35,19 @@ pub const AUTH_LOGIN: &str = "https://launcher-proxy.starstable.com/launcher/aut
 pub const AUTH_QUEUE_CREATE: &str = "https://launcher-proxy.starstable.com/launcher/login-queue/";
 
 /// Launcher Proxy URL.
-pub const LAUNCHER_PROXY: &str = "https://launcher-proxy.starstable.com";
+pub const LAUNCHER_PROXY: &str = "https://launcher-proxy.starstable.com/";
 
 /// Game server status URL
 pub const GAME_SERVER_DATA: &str = "https://launcher-proxy.starstable.com/launcher/game-server/";
+
+/// Manifest download endpoint
+pub const GAME_FILES: &str = "https://sso-released-prod.starstable.com/";
+
+/// Launcher version/download endpoint
+pub const LAUNCHER_VERSION: &str = "https://launcher-release-prod.starstable.com/";
 
 /// User Agent retrieved via `navigator.userAgent`.
 pub const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) StarStableOnline/2.18.0 Chrome/104.0.5112.124 Electron/20.3.8 Safari/537.36";
 
 /// URL for metrics, don't touch this. Hardcoded in Electron based launcher
-pub const METRICS: &str = "https://metrics.starstable.com/metric/v1/metrics";
+pub const METRICS: &str = "https://metrics.starstable.com/metric/v1/metrics/";

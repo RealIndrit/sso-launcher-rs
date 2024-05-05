@@ -1,8 +1,10 @@
-use crate::endpoints;
+use crate::{endpoints, utils};
 use anyhow::Error;
-use rand::random;
-use sha2::{Digest, Sha256};
 use std::fmt::Debug;
+use std::fs::File;
+use std::io;
+use std::path::{Path, PathBuf};
+use json::JsonValue;
 
 /// Implementation of the `launcher-proxy` API.
 #[allow(clippy::upper_case_acronyms)]
@@ -52,67 +54,90 @@ pub struct GameStatus {
 }
 
 impl StarStableApi {
-    /**
-     * When Star Stable entertainment decides to fix their shit, we will implement it here
-     * but at the time they have not updated the repo tag since 2021
-     *
-     * {
-     *   versionInfo: {
-     *     version: '2.9.13',
-     *     files: [ [Object] ],
-     *     path: 'Star Stable Online Setup 2.9.13.exe',
-     *     sha512: 'EsB1RFEqivuG+w4+yulMS8BnkE8DndpwCnjbpYXD2Bg3f3f3oTU+AfMYthxx0BOH0cVIcYxlJl4I/6X0G6S4UA==',
-     *     releaseDate: '2021-12-15T09:19:31.282Z'
-     *   },
-     *   updateInfo: {
-     *     version: '2.9.13',
-     *     files: [ [Object] ],
-     *     path: 'Star Stable Online Setup 2.9.13.exe',
-     *     sha512: 'EsB1RFEqivuG+w4+yulMS8BnkE8DndpwCnjbpYXD2Bg3f3f3oTU+AfMYthxx0BOH0cVIcYxlJl4I/6X0G6S4UA==',
-     *     releaseDate: '2021-12-15T09:19:31.282Z'
-     *   }
-     * }
-     */
-
+    // /**
+    //  * When Star Stable entertainment decides to fix their shit, we will implement it here
+    //  * but at the time they have not updated the repo tag since 2021
+    //  *
+    //  * {
+    //  *   versionInfo: {
+    //  *     version: '2.9.13',
+    //  *     files: [ [Object] ],
+    //  *     path: 'Star Stable Online Setup 2.9.13.exe',
+    //  *     sha512: 'EsB1RFEqivuG+w4+yulMS8BnkE8DndpwCnjbpYXD2Bg3f3f3oTU+AfMYthxx0BOH0cVIcYxlJl4I/6X0G6S4UA==',
+    //  *     releaseDate: '2021-12-15T09:19:31.282Z'
+    //  *   },
+    //  *   updateInfo: {
+    //  *     version: '2.9.13',
+    //  *     files: [ [Object] ],
+    //  *     path: 'Star Stable Online Setup 2.9.13.exe',
+    //  *     sha512: 'EsB1RFEqivuG+w4+yulMS8BnkE8DndpwCnjbpYXD2Bg3f3f3oTU+AfMYthxx0BOH0cVIcYxlJl4I/6X0G6S4UA==',
+    //  *     releaseDate: '2021-12-15T09:19:31.282Z'
+    //  *   }
+    //  * }
+    //  */
+    //
     /// Attempts to get latest release tag.
     /// ## Returns
     /// A `String` containing the latest tagged version of the launcher .
     #[inline(always)]
     pub fn get_latest_launcher_version() -> String {
+        println!("Grabbing Latest launcher version...");
+        // let client = reqwest::blocking::Client::new();
         "2.30.1".to_string() // Hardcode it ig...
     }
 
-    /**
-     * Original function used by them for deviceid is:
-     * This function gets the OS native UUID/GUID asynchronously (recommended), hashed by default.
-     * @param {boolean} [original=false] - If true return original value of machine id, otherwise return hashed value (sha - 256)
-     */
 
-    /// Blatantly fakes the device id, cause why the fuck do they need that for launcher?
+    /// Downloads the official launcher, adding this shortcut because who wants to go through the whole effort of opening the browser...
     /// ## Returns
-    /// A `String` containing TOTALLY LEGIT device id ;).
-
+    /// Result <(), Error>
     #[inline(always)]
-    pub fn get_fake_device_id() -> String {
-        let mut hasher = Sha256::new();
-        hasher.update(random::<f32>().to_string());
-        hex::encode(hasher.finalize())
+    pub fn download_official_launcher(download_location: PathBuf) -> Result<(), Error>{
+        println!("Downloading official launcher...");
+        let client = reqwest::blocking::Client::new();
+        let response =  &client
+                .get(endpoints::LAUNCHER_VERSION.to_owned() + "latest/Star%20Stable%20Online%20Setup.exe")
+                .header("User-Agent", endpoints::USER_AGENT)
+                .header("pragma", "no-cache")
+                .header("cache-control", "no-cache")
+                .send()
+                .expect("Couldn't send GET request!")
+                .text()
+                .expect("Couldn't get raw text data!");
+
+        let mut out = File::create(download_location.as_path()).unwrap();
+        match io::copy(&mut response.as_bytes(), &mut out) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(Error::from(e))
+        }
     }
 
     /// Downloads file manifest
     /// ## Returns
-    /// JsonValue with the following structure:
-    /// {
-    ///     "id":91,
-    ///     "regionId":8,
-    ///     "name":"sso-eu-se-01",
-    ///     "friendlyName":"Marshmallow Clouds",
-    ///     "online":true,
-    ///     "updateInProgress":false,
-    ///     "iconUrl":"https://www-assets.starstable.com/ServerIcons/marshmallowcloud.png",
-    ///     "messageCode":0,
-    ///     "gameVersion":"SSORelease651_223278_3_PXRelease2024_15_222377_34814ad9d9a14233a919face6e9d840b"
-    /// }
+    /// JsonValue with data or Error
+    #[inline(always)]
+    pub fn get_remote_manifest(version_hash: String) -> Result<JsonValue, Error> {
+        println!("Grabbing Game status...");
+        let client = reqwest::blocking::Client::new();
+        match json::parse(
+            &client
+                .get(endpoints::GAME_FILES.to_owned() + version_hash.as_str() + "/Manifest.json")
+                .header("Content-Type", "application/json")
+                .header("User-Agent", endpoints::USER_AGENT)
+                .header("pragma", "no-cache")
+                .header("cache-control", "no-cache")
+                .send()
+                .expect("Couldn't send GET request!")
+                .text()
+                .expect("Couldn't get raw text response from the request!")
+        ) {
+            Ok(manifest_data) => Ok(manifest_data),
+            Err(e) => Err(Error::from(e))
+        }
+    }
+
+    /// Fetches status for account bound server
+    /// ## Returns
+    /// structure of GameStatus containing with relevant info
     #[inline(always)]
     pub fn get_game_server_data(token: String) -> Result<GameStatus, Error> {
         println!("Grabbing Game status...");
@@ -123,7 +148,7 @@ impl StarStableApi {
                 .header("Content-Type", "application/json")
                 .header("User-Agent", endpoints::USER_AGENT)
                 .send()
-                .expect("Couldn't send POST request!")
+                .expect("Couldn't send GET request!")
                 .text()
                 .expect("Couldn't get raw text response from the request!"),
         )
@@ -145,7 +170,7 @@ impl StarStableApi {
     /// Attempts to log in.
     /// ## Returns
     /// A structure containing the User ID and Launcher Hash.
-    /// Panics if the API `success` value is false, or if there's an error with retrieving/sending
+    /// Errors if the API `success` value is false, or if there's an error with retrieving/sending
     /// data.
     #[inline(always)]
     pub fn login(email: String, password: String) -> Result<AuthResponse, Error> {
@@ -156,7 +181,7 @@ impl StarStableApi {
             launcherPlatform: "desktop",
             clientOsRelease: "10.0.22621",
             browserFamily: "Electron",
-            deviceId: Self::get_fake_device_id()
+            deviceId: utils::get_fake_device_id()
         };
 
         println!("Grabbing Launcher Hash and User ID...");

@@ -27,15 +27,24 @@ _In conclusion; their launcher is a bloated, slow and utter mess. Just extract t
 ## Does it implement everything the actual launcher has?
 No, not even close to it. It has no store, no news, nothing of that useless shit. It will just do what's needed to download/update/launch the game, nothing less, nothing more.
 
-I will implement auto-update/download and some custom launch properties in the future
-
-ITS STILL WIP
+Current features:
+* Launch game
+  * Set Language
+  * Set custom game arguments (Not available by default on official launcher, use with caution)
+* Checking game status
+* Update/Install game (WIP)
+* Directly download official launcher
 
 ## Where's the UI?
 There's none, it's a terminal application. Terminal is more than enough for this use case, if you genuially believe you need a UI, just use the official launcher...
 
 ## Does this break the TOS?
 I do not know specifically, so I will say `YES`. So use with caution and do not do anything stupid.
+
+## How do I use it?
+
+Run the executable in the terminal:
+`(EXE) --help` and use that massive brain for the rest :P
 
 ## Disclaimer
 1. I am in no way associated with Star Stable Entertainment AB.
