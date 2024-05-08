@@ -1,13 +1,10 @@
 use crate::{endpoints, utils};
 use anyhow::Error;
+use json::JsonValue;
 use std::fmt::Debug;
 use std::fs::File;
-use std::io;
 use std::io::Write;
-use std::path::{Path, PathBuf};
-use std::process::exit;
-use json::JsonValue;
-use crate::utils::write_to_file;
+use std::path::PathBuf;
 
 /// Implementation of the `launcher-proxy` API.
 #[allow(clippy::upper_case_acronyms)]
@@ -89,23 +86,25 @@ impl StarStableApi {
         "2.30.1".to_string() // Hardcode it ig...
     }
 
-
     /// Downloads the official launcher, adding this shortcut because who wants to go through the whole effort of opening the browser...
     /// ## Returns
     /// Result <(), Error>
     #[inline(always)]
-    pub fn download_official_launcher(download_location: PathBuf) -> Result<(), Error>{
+    pub fn download_official_launcher(download_location: PathBuf) -> Result<(), Error> {
         println!("Downloading official launcher...");
         let client = reqwest::blocking::Client::new();
-        let response =  &client
-                .get(endpoints::LAUNCHER_VERSION.to_owned() + "latest/Star%20Stable%20Online%20Setup.exe")
-                .header("User-Agent", endpoints::USER_AGENT)
-                .header("pragma", "no-cache")
-                .header("cache-control", "no-cache")
-                .send()
-                .expect("Couldn't send GET request!")
-                .bytes()
-                .expect("Couldn't get raw text data!");
+        let response = &client
+            .get(
+                endpoints::LAUNCHER_VERSION.to_owned()
+                    + "latest/Star%20Stable%20Online%20Setup.exe",
+            )
+            .header("User-Agent", endpoints::USER_AGENT)
+            .header("pragma", "no-cache")
+            .header("cache-control", "no-cache")
+            .send()
+            .expect("Couldn't send GET request!")
+            .bytes()
+            .expect("Couldn't get raw text data!");
 
         let mut file = match File::create(&download_location) {
             Err(why) => panic!("couldn't create {}", why),
@@ -133,10 +132,10 @@ impl StarStableApi {
                 .send()
                 .expect("Couldn't send GET request!")
                 .text()
-                .expect("Couldn't get raw text response from the request!")
+                .expect("Couldn't get raw text response from the request!"),
         ) {
             Ok(manifest_data) => Ok(manifest_data),
-            Err(e) => Err(Error::from(e))
+            Err(e) => Err(Error::from(e)),
         }
     }
 

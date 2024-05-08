@@ -1,10 +1,14 @@
 use crate::api::{AuthResponse, GameStatus};
+use crate::update::get_local_manifest;
 use crate::{endpoints, LaunchArgs};
 use anyhow::Error;
-use crate::update::get_local_manifest;
 
 /// Launches the game using the given auth response.
-pub fn launch_game(auth_response: AuthResponse, game_status: GameStatus, args: &LaunchArgs) -> Result<(), Error> {
+pub fn launch_game(
+    auth_response: AuthResponse,
+    game_status: GameStatus,
+    args: &LaunchArgs,
+) -> Result<(), Error> {
     // Path to client folder within the installation
     let path = &args.install_path.clone().unwrap().join("client");
     let exe = &path.clone().join("SSOClient.exe");
@@ -15,18 +19,24 @@ pub fn launch_game(auth_response: AuthResponse, game_status: GameStatus, args: &
     }
 
     // Do some sanity checks before trying to launch game
-    if(game_status.update_in_progress == true){
-        return Err(Error::msg(format!("Game server '{}' undergoing update to version '{}', please try again later", game_status.friendly_name, game_status.game_version)));
+    if (game_status.update_in_progress == true) {
+        return Err(Error::msg(format!(
+            "Game server '{}' undergoing update to version '{}', please try again later",
+            game_status.friendly_name, game_status.game_version
+        )));
     }
 
-    if(game_status.online != true && game_status.update_in_progress != true){
-        return Err(Error::msg(format!("Game server '{}' is not available at the time for unknown reason, please try again later. For more information see Star Stable Onlines's website", game_status.friendly_name)))
+    if (game_status.online != true && game_status.update_in_progress != true) {
+        return Err(Error::msg(format!("Game server '{}' is not available at the time for unknown reason, please try again later. For more information see Star Stable Onlines's website", game_status.friendly_name)));
     }
 
     let mut manifest = get_local_manifest(&args.install_path.clone().unwrap()).unwrap();
     let local_gameversion = manifest["client"].take()["version"].take().to_string();
-    if(game_status.game_version != local_gameversion){
-        return Err(Error::msg(format!("Game server '{}' is not same version '{}' as installed version '{}', cannot join!", game_status.friendly_name, game_status.game_version, local_gameversion)))
+    if (game_status.game_version != local_gameversion) {
+        return Err(Error::msg(format!(
+            "Game server '{}' is not same version '{}' as installed version '{}', cannot join!",
+            game_status.friendly_name, game_status.game_version, local_gameversion
+        )));
     }
 
     // Sanity checks passed, build argument structure being passed to game executable
@@ -70,11 +80,15 @@ pub fn launch_game(auth_response: AuthResponse, game_status: GameStatus, args: &
     println!("Launching game with following arguments: {:?}", launch_args);
     // WE BALLLL
     // NOTE: .current_dir() is important AF as the executable uses that to find its relative position to asset files LOL.
-    std::process::Command::new(exe)
+    match std::process::Command::new(exe)
         .args(launch_args)
         .current_dir(path)
         .spawn()
-        .expect("Couldn't start 'SSOClient.exe'!");
-
-    Ok(())
+    {
+        Ok(_) => Ok(()),
+        Err(e) => Err(Error::msg(format!(
+            "Couldn't start 'SSOClient.exe'!: {}",
+            e
+        ))),
+    }
 }

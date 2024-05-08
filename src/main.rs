@@ -1,16 +1,16 @@
 mod api;
+mod download;
 mod endpoints;
 mod launch;
 mod status;
 mod update;
 mod utils;
-mod download;
 
 use crate::api::StarStableApi;
+use crate::download::download_launcher;
 use crate::launch::launch_game;
 use crate::status::status_game;
 use crate::update::update_game;
-use crate::download::download_launcher;
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use colored::Colorize;
 use std::path::PathBuf;
@@ -49,10 +49,7 @@ enum Commands {
 #[derive(Args)]
 struct DownloadArgs {
     /// The path to the Star Stable Online base installation folder, SSOClient should be in a subfolder called client within this path
-    #[arg(
-    short = 'p',
-    long,
-    )]
+    #[arg(short = 'p', long)]
     download_path: Option<PathBuf>,
 }
 

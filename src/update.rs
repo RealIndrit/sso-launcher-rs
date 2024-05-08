@@ -1,11 +1,10 @@
 use crate::api::AuthResponse;
+use crate::utils::write_to_file;
 use crate::UpdateArgs;
 use anyhow::Error;
 use json::JsonValue;
 use std::fs;
 use std::path::PathBuf;
-use crate::utils::write_to_file;
-
 
 const FULL_INSTALL: i8 = 0;
 const UPDATE: i8 = 1;
@@ -22,11 +21,11 @@ pub fn update_game(auth_response: AuthResponse, args: &UpdateArgs) -> Result<(),
 
     match manifest_data {
         Ok(data) => {
-            if(data == JsonValue::Null){
+            if (data == JsonValue::Null) {
                 install_type = FULL_INSTALL;
             }
         }
-        Err(e) => return Err(e)
+        Err(e) => return Err(e),
     }
 
     Ok(())
@@ -36,16 +35,15 @@ pub fn update_game(auth_response: AuthResponse, args: &UpdateArgs) -> Result<(),
 pub fn get_local_manifest(path: &PathBuf) -> Result<JsonValue, Error> {
     let contents = fs::read_to_string(path.clone().join("manifest.json"));
     match contents {
-        Ok(data) => {
-            match json::parse(data.as_str()) {
-                Ok(json) => Ok(json),
-                Err(e) => {
-                    Err(Error::msg(format!("Could not parse JSON data from file, error {}", e)))
-                },
-            }
-        }
+        Ok(data) => match json::parse(data.as_str()) {
+            Ok(json) => Ok(json),
+            Err(e) => Err(Error::msg(format!(
+                "Could not parse JSON data from file: {}",
+                e
+            ))),
+        },
         Err(err) => {
-            if(err.raw_os_error().unwrap() == 2){
+            if (err.raw_os_error().unwrap() == 2) {
                 return Ok(JsonValue::Null);
             }
 
@@ -58,9 +56,9 @@ pub fn get_local_manifest(path: &PathBuf) -> Result<JsonValue, Error> {
 pub fn store_local_manifest(path: &PathBuf, data: JsonValue) -> Result<(), Error> {
     write_to_file(
         &path.clone().join("manifest.json"),
-        json::stringify_pretty(data, 4)
+        json::stringify_pretty(data, 4),
     )
-        .expect("TODO: Failed to write to manifest file");
+    .expect("TODO: Failed to write to manifest file");
     Ok(())
 }
 

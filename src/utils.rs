@@ -1,9 +1,9 @@
-use std::fs::File;
-use std::io::Write;
-use std::path::PathBuf;
 use anyhow::Error;
 use rand::random;
 use sha2::{Digest, Sha256};
+use std::fs::File;
+use std::io::Write;
+use std::path::PathBuf;
 
 /**
  * Original function used by them for deviceid is:
