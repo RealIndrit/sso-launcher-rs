@@ -5,6 +5,7 @@ use std::fs::File;
 use std::io;
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::process::exit;
 use json::JsonValue;
 use crate::utils::write_to_file;
 
@@ -49,7 +50,7 @@ pub struct GameStatus {
     pub(crate) icon_url: String,
 
     /// response code, follows standard return code format?
-    pub(crate) message_code: i8,
+    pub(crate) message_code: i16,
 
     /// current active version on the server
     pub(crate) game_version: String,
@@ -166,7 +167,7 @@ impl StarStableApi {
             online: response["online"].as_bool().unwrap(),
             update_in_progress: response["updateInProgress"].as_bool().unwrap(),
             icon_url: response["iconUrl"].to_string(),
-            message_code: response["messageCode"].as_i8().unwrap(),
+            message_code: response["messageCode"].as_i16().unwrap(),
             game_version: response["gameVersion"].to_string(),
         })
     }

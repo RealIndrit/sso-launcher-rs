@@ -16,7 +16,7 @@ pub fn launch_game(auth_response: AuthResponse, game_status: GameStatus, args: &
 
     // Do some sanity checks before trying to launch game
     if(game_status.update_in_progress == true){
-        return Err(Error::msg(format!("Game server '{}' undergoing update '{}', please try again later", game_status.friendly_name, game_status.game_version)));
+        return Err(Error::msg(format!("Game server '{}' undergoing update to version '{}', please try again later", game_status.friendly_name, game_status.game_version)));
     }
 
     if(game_status.online != true && game_status.update_in_progress != true){
