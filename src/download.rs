@@ -8,6 +8,7 @@ pub fn download_launcher(download_args: &DownloadArgs) -> Result<(), Error> {
             let path = dirs::home_dir()
                 .unwrap()
                 .as_path()
+                .join("Downloads")
                 .join("Star Stable Online Setup.exe");
             StarStableApi::download_official_launcher(path)
         }
