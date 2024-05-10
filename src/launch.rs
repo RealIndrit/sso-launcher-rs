@@ -19,20 +19,20 @@ pub fn launch_game(
     }
 
     // Do some sanity checks before trying to launch game
-    if (game_status.update_in_progress == true) {
+    if game_status.update_in_progress == true {
         return Err(Error::msg(format!(
             "Game server '{}' undergoing update to version '{}', please try again later",
             game_status.friendly_name, game_status.game_version
         )));
     }
 
-    if (game_status.online != true && game_status.update_in_progress != true) {
+    if game_status.online != true && game_status.update_in_progress != true {
         return Err(Error::msg(format!("Game server '{}' is not available at the time for unknown reason, please try again later. For more information see Star Stable Onlines's website", game_status.friendly_name)));
     }
 
     let mut manifest = get_local_manifest(&args.install_path.clone().unwrap()).unwrap();
     let local_gameversion = manifest["client"].take()["version"].take().to_string();
-    if (game_status.game_version != local_gameversion) {
+    if game_status.game_version != local_gameversion {
         return Err(Error::msg(format!(
             "Game server '{}' is not the same version '{}' as installed version '{}', cannot join!",
             game_status.friendly_name, game_status.game_version, local_gameversion

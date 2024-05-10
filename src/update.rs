@@ -43,7 +43,7 @@ pub fn get_local_manifest(path: &PathBuf) -> Result<JsonValue, Error> {
             ))),
         },
         Err(err) => {
-            if (err.raw_os_error().unwrap() == 2) {
+            if err.raw_os_error().unwrap() == 2 {
                 return Ok(JsonValue::Null);
             }
 

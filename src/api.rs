@@ -155,20 +155,24 @@ impl StarStableApi {
                 .expect("Couldn't send GET request!")
                 .text()
                 .expect("Couldn't get raw text response from the request!"),
-        )
-        .expect("Couldn't parse response as JSON!");
+        );
 
-        Ok(GameStatus {
-            id: response["id"].as_i16().unwrap(),
-            region_id: response["regionId"].as_i8().unwrap(),
-            name: response["name"].to_string(),
-            friendly_name: response["friendlyName"].to_string(),
-            online: response["online"].as_bool().unwrap(),
-            update_in_progress: response["updateInProgress"].as_bool().unwrap(),
-            icon_url: response["iconUrl"].to_string(),
-            message_code: response["messageCode"].as_i16().unwrap(),
-            game_version: response["gameVersion"].to_string(),
-        })
+        match response {
+            Ok(response) => {
+                Ok(GameStatus {
+                    id: response["id"].as_i16().unwrap(),
+                    region_id: response["regionId"].as_i8().unwrap(),
+                    name: response["name"].to_string(),
+                    friendly_name: response["friendlyName"].to_string(),
+                    online: response["online"].as_bool().unwrap(),
+                    update_in_progress: response["updateInProgress"].as_bool().unwrap(),
+                    icon_url: response["iconUrl"].to_string(),
+                    message_code: response["messageCode"].as_i16().unwrap(),
+                    game_version: response["gameVersion"].to_string(),
+                })
+            }
+            Err(e) =>  Err(Error::msg(format!("Could not get game server data: {}", e)))
+        }
     }
 
     /// Attempts to log in.
@@ -200,26 +204,27 @@ impl StarStableApi {
                 .expect("Couldn't send POST request!")
                 .text()
                 .expect("Couldn't get raw text response from the request!"),
-        )
-        .expect("Couldn't parse response as JSON!");
+        );
 
-        if response["success"]
-            .as_bool()
-            .expect("No 'success' key is present?")
-        {
-            // Success, get the queueToken and return.
-            let launcher_hash = response["launcherHash"]
-                .as_str()
-                .expect("Couldn't find 'launcherHash'!")
-                .to_owned();
+        match response {
+            Ok(response) => {
+                if response["success"].as_bool().unwrap() {
+                // Success, get the queueToken and return.
+                    let launcher_hash = response["launcherHash"]
+                        .as_str()
+                        .expect("Couldn't find 'launcherHash'!")
+                        .to_owned();
 
-            Ok(AuthResponse {
-                user_id: response["accountId"].to_string(),
-                launcher_hash: launcher_hash.to_owned(),
-                queue_token: Self::get_queue_token(launcher_hash, client).unwrap(),
-            })
-        } else {
-            Err(Error::msg("Could not get success data for Login request"))
+                    Ok(AuthResponse {
+                        user_id: response["accountId"].to_string(),
+                        launcher_hash: launcher_hash.to_owned(),
+                        queue_token: Self::get_queue_token(launcher_hash, client).unwrap(),
+                    })
+                } else {
+                    return Err(Error::msg("Could not get success data for Login request"))
+                }
+            },
+            Err(e) => Err(Error::msg(format!("Could not get response data for Login request: {}", e)))
         }
     }
 
@@ -248,20 +253,21 @@ impl StarStableApi {
                 .expect("Couldn't send POST request!")
                 .text()
                 .expect("Couldn't get raw text response from the request!"),
-        )
-        .expect("Couldn't parse response as JSON!");
+        );
 
-        if response["success"]
-            .as_bool()
-            .expect("No 'success' key is present?")
-        {
-            // Success, get the token.
-            Ok(response["queueToken"]
-                .as_str()
-                .expect("Couldn't find 'queueToken'!")
-                .to_owned())
-        } else {
-            Err(Error::msg("Couldn't get queue token, response: {response}"))
+        match response {
+            Ok(response) => {
+                if response["success"].as_bool().unwrap() {
+                    // Success, get the queueToken and return.
+                    Ok(response["queueToken"]
+                        .as_str()
+                        .expect("Couldn't find 'queueToken'!")
+                        .to_owned())
+                } else {
+                    return Err(Error::msg("Couldn't get queue token"))
+                }
+            },
+            Err(e) => Err(Error::msg(format!("Couldn't get queue token response: {}", e)))
         }
     }
 }

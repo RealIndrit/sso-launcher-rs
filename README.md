@@ -1,9 +1,5 @@
 # SSO Launcher (Rust) (Based on [SimplyLaunch](https://github.com/vars1ty/SimplyLaunch))
 
-
-## Why did you fork?
-Welcome to git, if its MIT license, you can do whatever :P. To be serious, I looked at activity of that project and saw nothing has been done the last 7 months, so it seems to not be maintained. And the fact that it did not even work as logic's stuff had changed since. So I just moved over to my own fork and maintain it here, OG author is 100% welcome to rip the code. (I even encourage it)
-
 ## What is it?
 Simply put, it is a heavily stripped down launcher for `Star Stable Online` with less bloat. A bit scuffed Rust code maybe... The amount of shit in the official launcher is nothing short of astonishing. And I personally do not wanna be within 10 feet radius of Electron based bloat programs if it can be avoided.
 
