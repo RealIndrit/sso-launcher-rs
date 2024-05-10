@@ -34,7 +34,7 @@ pub fn launch_game(
     let local_gameversion = manifest["client"].take()["version"].take().to_string();
     if (game_status.game_version != local_gameversion) {
         return Err(Error::msg(format!(
-            "Game server '{}' is not same version '{}' as installed version '{}', cannot join!",
+            "Game server '{}' is not the same version '{}' as installed version '{}', cannot join!",
             game_status.friendly_name, game_status.game_version, local_gameversion
         )));
     }
