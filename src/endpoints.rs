@@ -22,7 +22,7 @@
 ///   clientOsRelease: '10.0.22621',
 ///   browserFamily: 'Electron'
 /// }
-pub const AUTH_LOGIN: &str = "https://launcher-proxy.starstable.com/launcher/auth";
+pub const AUTH_LOGIN: &str = "https://launcher-proxy.starstable.com/launcher/auth/";
 
 /// Queue Create back-end.
 /// ## Usage
@@ -32,7 +32,7 @@ pub const AUTH_LOGIN: &str = "https://launcher-proxy.starstable.com/launcher/aut
 /// `success`: bool
 /// `passedTheQueue`: bool,
 /// `queueToken`: String
-pub const AUTH_QUEUE_CREATE: &str = "https://launcher-proxy.starstable.com/launcher/login-queue/";
+pub const AUTH_QUEUE_CREATE: &str = "https://launcher-proxy.starstable.com/launcher/login-queue/v2/desktop/";
 
 /// Launcher Proxy URL.
 pub const LAUNCHER_PROXY: &str = "https://launcher-proxy.starstable.com/";

@@ -238,15 +238,11 @@ impl StarStableApi {
         launcher_hash: String,
         client: reqwest::blocking::Client,
     ) -> Result<String, Error> {
-        let json = json::object! {
-            launcher_hash: launcher_hash
-        };
 
         println!("Grabbing Queue Token...");
         let response = json::parse(
             &client
-                .post(endpoints::AUTH_QUEUE_CREATE)
-                .body(json.dump())
+                .post(endpoints::AUTH_QUEUE_CREATE.to_owned() + &*launcher_hash)
                 .header("Content-Type", "application/json")
                 .header("User-Agent", endpoints::USER_AGENT)
                 .send()
