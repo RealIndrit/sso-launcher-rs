@@ -1,6 +1,6 @@
 use crate::api::AuthResponse;
 use crate::utils::write_to_file;
-use crate::UpdateArgs;
+use crate::DownloadGameArgs;
 use anyhow::Error;
 use json::JsonValue;
 use std::fs;
@@ -13,7 +13,7 @@ const REPAIR: i8 = 3;
 const READY: i8 = 4;
 
 /// Update or download all required game files for given patch
-pub fn update_game(auth_response: AuthResponse, args: &UpdateArgs) -> Result<(), Error> {
+pub fn download_game(auth_response: AuthResponse, args: &DownloadGameArgs) -> Result<(), Error> {
     todo!();
     let path = &args.install_path.clone().unwrap();
     let manifest_data = get_local_manifest(path);

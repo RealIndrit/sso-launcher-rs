@@ -10,7 +10,7 @@ use crate::api::StarStableApi;
 use crate::download::download_launcher;
 use crate::launch::launch_game;
 use crate::status::status_game;
-use crate::update::update_game;
+use crate::update::download_game;
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use colored::Colorize;
 use std::path::PathBuf;
@@ -36,18 +36,18 @@ enum Commands {
     /// Launches the game
     Launch(LaunchArgs),
 
-    /// Updates the game, use this if you fail to join a server
-    Update(UpdateArgs),
+    /// Downloads the game, use this if you fail to join a server, if files already exist, it will overwrite the files at the given directory
+    DownloadGame(DownloadGameArgs),
 
     /// Fetches Server status for the logged in account
     Status,
 
     /// Downloads the official launcher directly to path
-    DownloadOfficial(DownloadArgs),
+    DownloadLauncher(DownloadLauncherArgs),
 }
 
 #[derive(Args)]
-struct DownloadArgs {
+struct DownloadLauncherArgs {
     /// The path to the where the launcher installed should be installed, if left empty downloads to USER/downloads folder on windows
     #[arg(short = 'p', long)]
     download_path: Option<PathBuf>,
@@ -63,6 +63,10 @@ struct LaunchArgs {
     )]
     install_path: Option<PathBuf>,
 
+    /// If we should log internal executable message to stdout
+    #[arg(long)]
+    debug: bool,
+
     /// The language the game will be set to
     #[arg(short = 'l', long, default_value = "en", value_enum)]
     language: Option<Language>,
@@ -74,10 +78,18 @@ struct LaunchArgs {
     default_value = None
     )]
     game_arguments: Option<Vec<String>>,
+
+    /// Path to the ngfx.exe (Nvidia NSight EXE)
+    #[arg(
+        short = 'n',
+        long,
+        default_value = None
+    )]
+    ngfx_launch_path: Option<PathBuf>,
 }
 
 #[derive(Args, Debug)]
-struct UpdateArgs {
+struct DownloadGameArgs {
     /// Version override
     #[arg(short = 'v', long)]
     version: Option<String>,
@@ -124,8 +136,8 @@ fn main() {
                 exit(1);
             }
         }
-        Commands::Update(args) => {
-            if let Err(e) = update_game(auth_response, args) {
+        Commands::DownloadGame(args) => {
+            if let Err(e) = download_game(auth_response, args) {
                 eprintln!("{}: {}", "error".bright_red().bold(), e);
                 exit(1);
             }
@@ -136,7 +148,7 @@ fn main() {
                 exit(1);
             }
         }
-        Commands::DownloadOfficial(args) => {
+        Commands::DownloadLauncher(args) => {
             if let Err(e) = download_launcher(args) {
                 eprintln!("{}: {}", "error".bright_red().bold(), e);
                 exit(1);

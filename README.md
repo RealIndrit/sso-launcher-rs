@@ -27,8 +27,10 @@ Current features:
 * Launch game
   * Set Language
   * Set custom game arguments (Not available by default on official launcher, use with caution)
+* Launch game through Nvidia Frame debugger tool NGFX (Just attach to process through NSight Graphics)
 * Checking game status
-* Update/Install game (WIP)
+
+[//]: # (* Download game &#40;Overwrites already installed files at location&#41;)
 * Directly download official launcher
 
 ## Where's the UI?

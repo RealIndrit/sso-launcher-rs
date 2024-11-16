@@ -158,20 +158,18 @@ impl StarStableApi {
         );
 
         match response {
-            Ok(response) => {
-                Ok(GameStatus {
-                    id: response["id"].as_i16().unwrap(),
-                    region_id: response["regionId"].as_i8().unwrap(),
-                    name: response["name"].to_string(),
-                    friendly_name: response["friendlyName"].to_string(),
-                    online: response["online"].as_bool().unwrap(),
-                    update_in_progress: response["updateInProgress"].as_bool().unwrap(),
-                    icon_url: response["iconUrl"].to_string(),
-                    message_code: response["messageCode"].as_i16().unwrap(),
-                    game_version: response["gameVersion"].to_string(),
-                })
-            }
-            Err(e) =>  Err(Error::msg(format!("Could not get game server data: {}", e)))
+            Ok(response) => Ok(GameStatus {
+                id: response["id"].as_i16().unwrap(),
+                region_id: response["regionId"].as_i8().unwrap(),
+                name: response["name"].to_string(),
+                friendly_name: response["friendlyName"].to_string(),
+                online: response["online"].as_bool().unwrap(),
+                update_in_progress: response["updateInProgress"].as_bool().unwrap(),
+                icon_url: response["iconUrl"].to_string(),
+                message_code: response["messageCode"].as_i16().unwrap(),
+                game_version: response["gameVersion"].to_string(),
+            }),
+            Err(e) => Err(Error::msg(format!("Could not get game server data: {}", e))),
         }
     }
 
@@ -209,7 +207,7 @@ impl StarStableApi {
         match response {
             Ok(response) => {
                 if response["success"].as_bool().unwrap() {
-                // Success, get the queueToken and return.
+                    // Success, get the queueToken and return.
                     let launcher_hash = response["launcherHash"]
                         .as_str()
                         .expect("Couldn't find 'launcherHash'!")
@@ -221,10 +219,13 @@ impl StarStableApi {
                         queue_token: Self::get_queue_token(launcher_hash, client).unwrap(),
                     })
                 } else {
-                    return Err(Error::msg("Could not get success data for Login request"))
+                    return Err(Error::msg("Could not get success data for Login request"));
                 }
-            },
-            Err(e) => Err(Error::msg(format!("Could not get response data for Login request: {}", e)))
+            }
+            Err(e) => Err(Error::msg(format!(
+                "Could not get response data for Login request: {}",
+                e
+            ))),
         }
     }
 
@@ -238,7 +239,6 @@ impl StarStableApi {
         launcher_hash: String,
         client: reqwest::blocking::Client,
     ) -> Result<String, Error> {
-
         println!("Grabbing Queue Token...");
         let response = json::parse(
             &client
@@ -260,10 +260,13 @@ impl StarStableApi {
                         .expect("Couldn't find 'queueToken'!")
                         .to_owned())
                 } else {
-                    return Err(Error::msg("Couldn't get queue token"))
+                    return Err(Error::msg("Couldn't get queue token"));
                 }
-            },
-            Err(e) => Err(Error::msg(format!("Couldn't get queue token response: {}", e)))
+            }
+            Err(e) => Err(Error::msg(format!(
+                "Couldn't get queue token response: {}",
+                e
+            ))),
         }
     }
 }

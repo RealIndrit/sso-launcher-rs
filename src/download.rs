@@ -1,8 +1,8 @@
 use crate::api::StarStableApi;
-use crate::DownloadArgs;
+use crate::DownloadLauncherArgs;
 use anyhow::Error;
 
-pub fn download_launcher(download_args: &DownloadArgs) -> Result<(), Error> {
+pub fn download_launcher(download_args: &DownloadLauncherArgs) -> Result<(), Error> {
     let download = match download_args.download_path.to_owned() {
         None => {
             let path = dirs::home_dir()

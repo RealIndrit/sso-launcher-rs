@@ -2,6 +2,78 @@ use crate::api::{AuthResponse, GameStatus};
 use crate::update::get_local_manifest;
 use crate::{endpoints, LaunchArgs};
 use anyhow::Error;
+use std::io::{self, Read, Write};
+use std::path::{Path, PathBuf};
+use std::process::Stdio;
+
+/// Launches the game using exe path, cwd, arguments and debug flag.
+fn _launch_game(
+    exe: &PathBuf,
+    launch_args: &Vec<String>,
+    cwd: &Path,
+    debug: bool,
+) -> Result<(), Error> {
+    match std::process::Command::new(exe)
+        .args(launch_args)
+        .current_dir(cwd)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+    {
+        Ok(mut child) => Ok({
+            if debug.clone() {
+                let mut stdout = child.stdout.take().expect("Failed to capture stdout");
+                let mut stderr = child.stderr.take().expect("Failed to capture stderr");
+
+                // Create a thread to handle stdout
+                let stdout_thread = std::thread::spawn(move || {
+                    let mut buffer = [0; 1024]; // Read in chunks of 1024 bytes
+                    let mut handle = io::stdout();
+
+                    while let Ok(bytes_read) = stdout.read(&mut buffer) {
+                        if bytes_read == 0 {
+                            break;
+                        }
+                        handle
+                            .write_all(&buffer[..bytes_read])
+                            .expect("Failed to write to stdout");
+                    }
+                });
+
+                // Create a thread to handle stderr
+                let stderr_thread = std::thread::spawn(move || {
+                    let mut buffer = [0; 1024]; // Read in chunks of 1024 bytes
+                    let mut handle = io::stderr();
+
+                    while let Ok(bytes_read) = stderr.read(&mut buffer) {
+                        if bytes_read == 0 {
+                            break;
+                        }
+                        handle
+                            .write_all(&buffer[..bytes_read])
+                            .expect("Failed to write to stderr");
+                    }
+                });
+
+                // Wait for the child process to finish
+                let status = child.wait().expect("Failed to wait on child process");
+                println!("Child process exited with status: {}", status);
+
+                // Wait for the threads to finish
+                stdout_thread.join().expect("Failed to join stdout thread");
+                stderr_thread.join().expect("Failed to join stderr thread");
+            } else {
+                return Ok(());
+            }
+        }),
+        Err(e) => Err(Error::msg(format!(
+            "Couldn't start '{}'!: {}",
+            &exe.display(),
+            e
+        ))),
+    }
+}
 
 /// Launches the game using the given auth response.
 pub fn launch_game(
@@ -76,19 +148,35 @@ pub fn launch_game(
             }
         }
     }
+    let debug = args.debug.to_owned();
 
-    println!("Launching game with following arguments: {:?}", launch_args);
-    // WE BALLLL
-    // NOTE: .current_dir() is important AF as the executable uses that to find its relative position to asset files LOL.
-    match std::process::Command::new(exe)
-        .args(launch_args)
-        .current_dir(path)
-        .spawn()
-    {
-        Ok(_) => Ok(()),
-        Err(e) => Err(Error::msg(format!(
-            "Couldn't start 'SSOClient.exe'!: {}",
-            e
-        ))),
+    match args.ngfx_launch_path.to_owned() {
+        None => {
+            println!("Launching normal instance of game...");
+            println!(
+                "Launching game with following arguments: {}",
+                &launch_args.join(" ")
+            );
+            _launch_game(&exe, &launch_args, &path, debug)
+        }
+
+        Some(ngfx_path) => {
+            let mut ngfx_launch_args: Vec<String> = vec![];
+            ngfx_launch_args.push(format!("--activity={}", "Frame Debugger"));
+            ngfx_launch_args.push(format!("--platform={}", "Windows"));
+            ngfx_launch_args.push(format!("--dir=\"{}\"", &path.display()));
+            ngfx_launch_args.push(format!("--exe=\"{}\"", &exe.display()));
+            ngfx_launch_args.push(format!("--args={}", &launch_args.join(" ")));
+            ngfx_launch_args.push(format!("{}", "--verbose"));
+            ngfx_launch_args.push(format!("{}", "--launch-detached"));
+
+            let ngfx_exe = &ngfx_path.join("ngfx.exe");
+            println!("Launching NGFX instance of game...");
+            println!(
+                "Launching game with following arguments: {}",
+                ngfx_launch_args.clone().join(" ")
+            );
+            _launch_game(&ngfx_exe, &ngfx_launch_args, &path, debug)
+        }
     }
 }
