@@ -95,7 +95,7 @@ impl StarStableApi {
         let client = reqwest::blocking::Client::new();
         let response = &client
             .get(
-                endpoints::LAUNCHER_VERSION.to_owned()
+                endpoints::LAUNCHER_FILES.to_owned()
                     + "latest/Star%20Stable%20Online%20Setup.exe",
             )
             .header("User-Agent", endpoints::USER_AGENT)

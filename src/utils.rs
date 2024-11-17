@@ -24,7 +24,15 @@ pub fn get_fake_device_id() -> String {
 
 #[inline(always)]
 pub fn write_to_file(path: &PathBuf, data: String) -> Result<(), Error> {
-    let mut file = File::create(path).unwrap();
-    file.write_all(data.as_ref()).unwrap();
-    Ok(())
+    println!("Saving data to file: {}", path.display());
+    let mut file = match File::create(path) {
+        Ok(file) => file,
+        Err(e) => return Err(Error::from(e)),
+    };
+
+    // Try to write the data to the file and handle potential errors
+    match file.write_all(data.as_ref()) {
+        Ok(_) => Ok(()),
+        Err(e) => Err(Error::from(e))
+    }
 }

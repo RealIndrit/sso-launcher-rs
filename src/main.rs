@@ -3,14 +3,12 @@ mod download;
 mod endpoints;
 mod launch;
 mod status;
-mod update;
 mod utils;
 
 use crate::api::StarStableApi;
-use crate::download::download_launcher;
+use crate::download::{download_game, download_launcher};
 use crate::launch::launch_game;
 use crate::status::status_game;
-use crate::update::download_game;
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use colored::Colorize;
 use std::path::PathBuf;
@@ -137,7 +135,7 @@ fn main() {
             }
         }
         Commands::DownloadGame(args) => {
-            if let Err(e) = download_game(auth_response, args) {
+            if let Err(e) = download_game(auth_response, game_status, args) {
                 eprintln!("{}: {}", "error".bright_red().bold(), e);
                 exit(1);
             }

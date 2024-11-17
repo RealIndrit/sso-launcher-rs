@@ -1,5 +1,5 @@
 use crate::api::{AuthResponse, GameStatus};
-use crate::update::get_local_manifest;
+use crate::download::get_local_manifest;
 use crate::{endpoints, LaunchArgs};
 use anyhow::Error;
 use std::io::{self, Read, Write};
@@ -84,7 +84,7 @@ pub fn launch_game(
     // Path to client folder within the installation
     let path = &args.install_path.clone().unwrap().join("client");
     let exe = &path.clone().join("SSOClient.exe");
-    if !std::path::Path::new(exe).exists() {
+    if !Path::new(exe).exists() {
         return Err(Error::msg(
             "No 'SSOClient.exe' is present. Make sure that this path is correct! Use --help for more info.",
         ));
